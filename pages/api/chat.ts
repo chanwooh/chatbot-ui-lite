@@ -24,9 +24,9 @@ const handler = async (req: Request): Promise<Response> => {
       messagesToSend.push(message);
     }
 
-    const stream = await OpenAIStream(messagesToSend);
+    const answer = await OpenAIStream(messagesToSend);
 
-    return new Response(stream);
+    return new Response(answer);
   } catch (error) {
     console.error(error);
     return new Response("Error", { status: 500 });
