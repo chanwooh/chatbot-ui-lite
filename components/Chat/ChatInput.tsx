@@ -4,9 +4,10 @@ import { FC, KeyboardEvent, useEffect, useRef, useState } from "react";
 
 interface Props {
   onSend: (message: Message) => void;
+  canSend: boolean;
 }
 
-export const ChatInput: FC<Props> = ({ onSend }) => {
+export const ChatInput: FC<Props> = ({ onSend, canSend }) => {
   const [content, setContent] = useState<string>();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -22,12 +23,14 @@ export const ChatInput: FC<Props> = ({ onSend }) => {
   };
 
   const handleSend = () => {
-    if (!content) {
-      alert("Please enter a message");
-      return;
+    if (canSend) {
+      if (!content) {
+        alert("Please enter a message");
+        return;
+      }
+      onSend({ role: "user", content });
+      setContent("");
     }
-    onSend({ role: "user", content });
-    setContent("");
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -58,7 +61,10 @@ export const ChatInput: FC<Props> = ({ onSend }) => {
       />
 
       <button onClick={() => handleSend()}>
-        <IconArrowUp className="absolute right-2 bottom-3 h-8 w-8 hover:cursor-pointer rounded-full p-1 bg-blue-500 text-white hover:opacity-80" />
+        { canSend ? 
+          <IconArrowUp className="absolute right-2 bottom-3 h-8 w-8 hover:cursor-pointer rounded-full p-1 bg-blue-500 text-white hover:opacity-80" /> :
+          <IconArrowUp className="absolute right-2 bottom-3 h-8 w-8 rounded-full p-1 bg-gray-300 text-white hover:opacity-80" />
+        }
       </button>
     </div>
   );

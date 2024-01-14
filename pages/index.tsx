@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [canSend, setCanSend] = useState<boolean>(true);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -85,6 +86,25 @@ export default function Home() {
     ]);
   };
 
+  const handleSync = async () => {
+
+    setCanSend(false);
+
+    const response = await fetch("/api/sync", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      // Todo: handle error and change UI
+      throw new Error(response.statusText);
+    }
+
+    setCanSend(true);
+  };
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -101,10 +121,10 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Chatbot UI</title>
+        <title>Kalibot</title>
         <meta
           name="description"
-          content="A simple chatbot starter kit for OpenAI's chat model using Next.js, TypeScript, and Tailwind CSS."
+          content="Chatbot for Kali"
         />
         <meta
           name="viewport"
@@ -126,6 +146,8 @@ export default function Home() {
               loading={loading}
               onSend={handleSend}
               onReset={handleReset}
+              onSync={handleSync}
+              canSend={canSend}
             />
             <div ref={messagesEndRef} />
           </div>
