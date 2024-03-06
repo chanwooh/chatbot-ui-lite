@@ -7,4 +7,11 @@ export interface Message {
   content: string;
 }
 
+export enum SyncState {
+  NotStarted,
+  Started,
+  Successful,
+  Failed
+}
+
 export type Role = "assistant" | "user";

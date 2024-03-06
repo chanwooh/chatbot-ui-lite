@@ -1,13 +1,16 @@
 import { Chat } from "@/components/Chat/Chat";
 import { Footer } from "@/components/Layout/Footer";
 import { Navbar } from "@/components/Layout/Navbar";
+import { AlertBanner } from "@/components/Layout/AlertBanner";
 import { Message } from "@/types";
+import { SyncState } from "@/types";
 import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [syncState, setSyncState] = useState<SyncState>(SyncState.NotStarted);
   const [canSend, setCanSend] = useState<boolean>(true);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -89,6 +92,7 @@ export default function Home() {
   const handleSync = async () => {
 
     setCanSend(false);
+    setSyncState(SyncState.Started);
 
     const response = await fetch("/api/sync", {
       method: "POST",
@@ -98,12 +102,50 @@ export default function Home() {
     });
 
     if (!response.ok) {
-      // Todo: handle error and change UI
+      setSyncState(SyncState.Failed);
       throw new Error(response.statusText);
+    } else
+    {
+      // Poll for job to finish
+      await response.text().then(async (id) => {
+        let jobDone = false;
+        while (!jobDone) {
+          const pollResponse = await fetch(`/api/poll?id=${id}`, {
+            method: "GET"
+          });
+
+          if (!pollResponse.ok) {
+            setSyncState(SyncState.Failed);
+            jobDone = true;
+            throw new Error(pollResponse.statusText);
+          } else {
+            await pollResponse.text().then(async (status) => {
+              if (status == "Task complete") {
+                jobDone = true;
+                setSyncState(SyncState.Successful);
+              } else if (status == "No task with that id") {
+                // Job not done yet wait a bit to poll again
+                await sleep(15000);
+              } else {
+                // Job failed
+                jobDone = true;
+                console.error(status)
+                setSyncState(SyncState.Failed);
+              }
+            });
+          }
+        }
+      });
     }
 
     setCanSend(true);
   };
+
+  const handleBannerClose = () => {
+    setSyncState(SyncState.NotStarted);
+  };
+
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
   useEffect(() => {
     scrollToBottom();
@@ -138,7 +180,9 @@ export default function Home() {
 
       <div className="flex flex-col h-screen">
         <Navbar />
-
+        {syncState != SyncState.NotStarted && <AlertBanner 
+          syncState={syncState}
+          onBannerClose={handleBannerClose}/>}
         <div className="flex-1 overflow-auto sm:px-10 pb-4 sm:pb-10">
           <div className="max-w-[800px] mx-auto mt-4 sm:mt-12">
             <Chat
