@@ -8,7 +8,7 @@ export const config = {
       const id = urlParams.get('id');
       // http://kalibot.azurewebsites.net/get_result_by_id?id=${id}
       // http://localhost:5001/get_result_by_id?id=${id}
-      const response = await fetch(`http://localhost:5001/get_result_by_id?id=${id}`, {
+      const response = await fetch(`http://kalibot.azurewebsites.net/get_result_by_id?id=${id}`, {
         method: "GET"
       });
   

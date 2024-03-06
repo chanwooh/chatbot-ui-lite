@@ -6,7 +6,7 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     // http://kalibot.azurewebsites.net/gdrive/sync
     // http://localhost:5001/gdrive/sync
-    const response = await fetch("http://localhost:5001/gdrive/sync", {
+    const response = await fetch("http://kalibot.azurewebsites.net/gdrive/sync", {
       headers: {
         "Content-Type": "application/json",
         //Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
